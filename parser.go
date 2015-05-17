@@ -61,9 +61,7 @@ func readUntil(in *bufio.Reader, test func(rune) bool) (string, error) {
 }
 
 func invert(test func(rune) bool) func(rune) bool {
-	return func(r rune) bool {
-		return !test(r)
-	}
+	return func(r rune) bool { return !test(r) }
 }
 
 func parseToken(in *bufio.Reader) (Expr, error) {
