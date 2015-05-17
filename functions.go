@@ -22,20 +22,20 @@ func standardEnv() Environment {
 			return Number(out)
 		}),
 		"pi": Number(math.Pi),
-		">": noEnv(twoArg(">", func(one, two Expr) Expr {
+		">": twoArg(">", func(one, two Expr) Expr {
 			return one.(Number) > two.(Number)
-		})),
-		"<=": noEnv(twoArg("<=", func(one, two Expr) Expr {
+		}),
+		"<=": twoArg("<=", func(one, two Expr) Expr {
 			return one.(Number) <= two.(Number)
-		})),
-		"-": noEnv(twoArg("-", func(one, two Expr) Expr {
+		}),
+		"-": twoArg("-", func(one, two Expr) Expr {
 			return one.(Number) - two.(Number)
-		})),
+		}),
 	}
 }
 
-func twoArg(name string, fn func(Expr, Expr) Expr) func(...Expr) Expr {
-	return func(exprs ...Expr) Expr {
+func twoArg(name string, fn func(Expr, Expr) Expr) Procedure {
+	return func(e Environment, exprs ...Expr) Expr {
 		if len(exprs) != 2 {
 			panic(fmt.Errorf("can only call %s with two arguments", name))
 		}
