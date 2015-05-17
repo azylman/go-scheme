@@ -57,15 +57,9 @@ func readUntil(in *bufio.Reader, test func(rune) bool) (string, error) {
 		}
 		return nil
 	}
-	if err := read(); err != nil {
-		return buf.String(), err
+	for read(); !test(r) && err == nil; read() {
 	}
-	for !test(r) {
-		if err := read(); err != nil {
-			return buf.String(), err
-		}
-	}
-	return buf.String(), nil
+	return buf.String(), err
 }
 
 func invert(test func(rune) bool) func(rune) bool {
