@@ -39,10 +39,6 @@ func NewParser(r io.Reader) *Parser {
 	return &Parser{r: bufio.NewReader(r)}
 }
 
-func readUntilWhitespace(in *bufio.Reader) (string, error) {
-	return readUntil(in, unicode.IsSpace)
-}
-
 func readUntil(in *bufio.Reader, test func(rune) bool) (string, error) {
 	var r rune
 	var err error
