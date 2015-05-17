@@ -99,11 +99,9 @@ func parseToken(in *bufio.Reader) (Expr, error) {
 }
 
 func atom(token string) Expr {
-	// First, see if it's a Number
-	f, err := strconv.ParseFloat(token, 64)
-	if err == nil {
+	// Either a number or a symbol
+	if f, err := strconv.ParseFloat(token, 64); err == nil {
 		return Number(f)
 	}
-	// Assume it's a Symbol
 	return Symbol(token)
 }
