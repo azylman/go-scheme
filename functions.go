@@ -25,6 +25,12 @@ func standardEnv() Environment {
 		">": noEnv(twoArg(">", func(one, two Expr) Expr {
 			return one.(Number) > two.(Number)
 		})),
+		"<=": noEnv(twoArg("<=", func(one, two Expr) Expr {
+			return one.(Number) <= two.(Number)
+		})),
+		"-": noEnv(twoArg("-", func(one, two Expr) Expr {
+			return one.(Number) - two.(Number)
+		})),
 	}
 }
 

@@ -57,3 +57,17 @@ func TestParseAndEval(t *testing.T) {
 		assert.Equal(t, test.Eval, result)
 	}
 }
+
+func BenchmarkFactorial(b *testing.B) {
+	prog := `
+(define fact (lambda (n) (if (<= n 1) 1 (* n (fact (- n 1))))))
+(fact 100)
+`
+	for i := 0; i < b.N; i++ {
+		parser := NewParser(bytes.NewBufferString(prog))
+		env := standardEnv()
+		for parser.Scan() {
+			eval(parser.Expression(), env)
+		}
+	}
+}

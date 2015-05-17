@@ -1,2 +1,2 @@
 test:
-	go test -v *.go
+	go test -bench . -v *.go
