@@ -35,65 +35,52 @@ func (p *Parser) Err() error {
 	return p.err
 }
 
-func pad(s string) []byte {
-	return []byte(" " + s + " ")
-}
-
 func NewParser(r io.Reader) *Parser {
-	// To make tokenizing easier, we pad all parens with spaces
-	src := r
-	r, w := io.Pipe()
-	go func() {
-		scanner := bufio.NewScanner(src)
-		scanner.Split(bufio.ScanRunes)
-		var err error
-		for scanner.Scan() {
-			switch scanner.Text() {
-			case "(", ")":
-				_, err = w.Write(pad(scanner.Text()))
-			default:
-				_, err = w.Write(scanner.Bytes())
-			}
-			if err != nil {
-				w.CloseWithError(err)
-				return
-			}
-		}
-		if err := scanner.Err(); err != nil {
-			w.CloseWithError(err)
-		} else {
-			w.Close()
-		}
-	}()
 	return &Parser{r: bufio.NewReader(r)}
 }
 
 func readUntilWhitespace(in *bufio.Reader) (string, error) {
+	return readUntil(in, unicode.IsSpace)
+}
+
+func readUntil(in *bufio.Reader, test func(rune) bool) (string, error) {
 	var r rune
 	var err error
 	var buf bytes.Buffer
-	for !unicode.IsSpace(r) {
+	read := func() error {
 		r, _, err = in.ReadRune()
 		if err != nil {
-			return buf.String(), err
+			return err
 		}
 		if _, err := buf.WriteRune(r); err != nil {
+			return err
+		}
+		return nil
+	}
+	if err := read(); err != nil {
+		return buf.String(), err
+	}
+	for !test(r) {
+		if err := read(); err != nil {
 			return buf.String(), err
 		}
 	}
 	return buf.String(), nil
 }
 
+func invert(test func(rune) bool) func(rune) bool {
+	return func(r rune) bool {
+		return !test(r)
+	}
+}
+
 func parseToken(in *bufio.Reader) (Expr, error) {
 	// Remove all whitespace at the beginning of the token
-	r := ' '
-	for r == ' ' || r == '\n' {
-		var err error
-		r, _, err = in.ReadRune()
-		if err != nil {
-			return nil, err
-		}
+	s, err := readUntil(in, invert(unicode.IsSpace))
+	if err != nil {
+		return nil, err
 	}
+	r := s[len(s)-1]
 	switch r {
 	case '(':
 		l := []Expr{}
@@ -111,9 +98,16 @@ func parseToken(in *bufio.Reader) (Expr, error) {
 	case ')':
 		return nil, nil
 	}
-	token, err := readUntilWhitespace(in)
+	token, err := readUntil(in, func(r rune) bool {
+		return unicode.IsSpace(r) || r == '(' || r == ')'
+	})
 	if err != nil {
 		return nil, err
+	}
+	// If the last character is a token terminator, put it back
+	if token[len(token)-1] == ')' {
+		in.UnreadRune()
+		token = token[:len(token)-1]
 	}
 	return atom(strings.TrimSpace(string(r) + token)), nil
 }
