@@ -52,10 +52,8 @@ func readUntil(in *bufio.Reader, test func(rune) bool) (string, error) {
 		if err != nil {
 			return err
 		}
-		if _, err := buf.WriteRune(r); err != nil {
-			return err
-		}
-		return nil
+		_, err := buf.WriteRune(r)
+		return err
 	}
 	for read(); !test(r) && err == nil; read() {
 	}
